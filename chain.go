@@ -63,6 +63,7 @@ func ChainStreamServer(interceptors ...grpc.StreamServerInterceptor) grpc.Stream
 //
 // Execution is done in left-to-right order, including passing of context.
 // For example ChainUnaryClient(one, two, three) will execute one before two before three.
+// 学习这里的写法，如何将多个合并成一个，并且真正的invoker只调用了一次
 func ChainUnaryClient(interceptors ...grpc.UnaryClientInterceptor) grpc.UnaryClientInterceptor {
 	n := len(interceptors)
 
@@ -77,7 +78,7 @@ func ChainUnaryClient(interceptors ...grpc.UnaryClientInterceptor) grpc.UnaryCli
 		for i := n - 1; i >= 0; i-- {
 			chainedInvoker = chainer(interceptors[i], chainedInvoker)
 		}
-
+		// 先执行第一个interceptor, 第一个interceptor传入的invoker包含之后的interceptor
 		return chainedInvoker(ctx, method, req, reply, cc, opts...)
 	}
 }
